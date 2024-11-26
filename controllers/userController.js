@@ -1,8 +1,8 @@
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { User } from "../models/userSchema.js";
 import ErrorHandler from "../middlewares/error.js";
+import {sendToken} from '../utils/jwtToken.js'
  
-
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, phone, password, role } = req.body;
   if (!name || !email || !phone || !password || !role) {
@@ -19,34 +19,31 @@ export const register = catchAsyncError(async (req, res, next) => {
     password,
     role,
   });
-   res.status(200).json({
-    success: true,
-    message: "User register!",
-    user,
-
+   sendToken(user, 200, res, "User Registered Succesfully!");
    });
-});
-
-// export const login = catchAsyncErrors(async (req, res, next) => {
-//   const { email, password, role } = req.body;
-//   if (!email || !password || !role) {
-//     return next(new ErrorHandler("Please provide email ,password and role."));
-//   }
-//   const user = await User.findOne({ email }).select("+password");
-//   if (!user) {
-//     return next(new ErrorHandler("Invalid Email Or Password.", 400));
-//   }
-//   const isPasswordMatched = await user.comparePassword(password);
-//   if (!isPasswordMatched) {
-//     return next(new ErrorHandler("Invalid Email Or Password.", 400));
-//   }
-//   if (user.role !== role) {
-//     return next(
-//       new ErrorHandler(`User with provided email and ${role} not found!`, 404)
-//     );
-//   }
-//   sendToken(user, 201, res, "User Logged In!");
-// });
+   
+ export const login = catchAsyncError(async (req, res, next) => {
+   const { email, password, role } = req.body;
+   if (!email || !password || !role) {
+     return next(new ErrorHandler("Please provide email ,password and role."));
+  }
+   const user = await User.findOne({ email }).select("+password");
+   if (!user){
+      return next(new ErrorHandler("Invalid Email Or Password.", 400));
+   }
+   const isPasswordMatched = await user.comparePassword(password);
+   if (!isPasswordMatched) {
+     return next("Invalid Email Or Password.", 400);
+   }
+   if (user.role !== role) {
+           new ErrorHandler("User with this role not found!",400);
+   }
+   sendToken(user, 201, res, "User Logged in succesfully!");
+  });
+ 
+ 
+  
+ 
 
 // export const logout = catchAsyncErrors(async (req, res, next) => {
 //   res
